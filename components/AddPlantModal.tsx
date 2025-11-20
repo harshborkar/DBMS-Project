@@ -175,7 +175,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
             animate="visible"
             exit="exit"
             onClick={onClose}
-            className="absolute inset-0 bg-earth-900/30 backdrop-blur-sm"
+            className="absolute inset-0 bg-earth-900/20 backdrop-blur-sm"
           />
           
           {/* Modal Content */}
@@ -184,19 +184,19 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden relative z-10 flex flex-col max-h-[90vh]"
+            className="bg-white/80 backdrop-blur-2xl border border-white/50 w-full max-w-md rounded-[2.5rem] shadow-2xl shadow-leaf-900/10 overflow-hidden relative z-10 flex flex-col max-h-[90vh]"
           >
-            <div className="px-6 py-4 border-b border-earth-100 flex justify-between items-center bg-leaf-50/50 shrink-0">
+            <div className="px-6 py-4 border-b border-white/30 flex justify-between items-center bg-white/30 shrink-0 backdrop-blur-sm">
               <motion.h2 
                 variants={itemVariants}
                 className="text-lg font-bold text-earth-800 flex items-center gap-2"
               >
-                <div className="p-2 bg-leaf-100 rounded-full text-leaf-600">
+                <div className="p-2 bg-leaf-100/80 rounded-full text-leaf-600">
                    <Sprout size={18} />
                 </div>
                 Add New Plant
               </motion.h2>
-              <button onClick={onClose} className="p-2 hover:bg-earth-100 rounded-full text-earth-400 hover:text-earth-600 transition-colors">
+              <button onClick={onClose} className="p-2 hover:bg-white/50 rounded-full text-earth-400 hover:text-earth-600 transition-colors">
                 <X size={20} />
               </button>
             </div>
@@ -206,7 +206,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                 
                 {/* Image Preview Section */}
                 <motion.div variants={itemVariants} className="flex justify-center mb-2">
-                  <div className="relative group w-full h-48 rounded-3xl overflow-hidden bg-earth-50 border-2 border-dashed border-earth-200 hover:border-leaf-300 transition-colors">
+                  <div className="relative group w-full h-48 rounded-3xl overflow-hidden bg-white/40 border-2 border-dashed border-white/60 hover:border-leaf-300/60 transition-colors backdrop-blur-sm">
                     {imageUrl ? (
                       <>
                         <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
@@ -214,7 +214,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                           <button 
                             type="button"
                             onClick={() => generateImage(species)}
-                            className="p-3 bg-white text-earth-800 rounded-full shadow-lg hover:scale-110 transition-transform"
+                            className="p-3 bg-white/90 text-earth-800 rounded-full shadow-lg hover:scale-110 transition-transform"
                             title="Regenerate AI Image"
                           >
                             <RefreshCw size={20} className={isGeneratingImage ? "animate-spin" : ""} />
@@ -222,7 +222,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                           <button 
                             type="button"
                             onClick={() => setShowUrlInput(!showUrlInput)}
-                            className="p-3 bg-white text-earth-800 rounded-full shadow-lg hover:scale-110 transition-transform"
+                            className="p-3 bg-white/90 text-earth-800 rounded-full shadow-lg hover:scale-110 transition-transform"
                             title="Paste URL"
                           >
                             <LinkIcon size={20} />
@@ -230,7 +230,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                           <button 
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="p-3 bg-white text-earth-800 rounded-full shadow-lg hover:scale-110 transition-transform"
+                            className="p-3 bg-white/90 text-earth-800 rounded-full shadow-lg hover:scale-110 transition-transform"
                             title="Upload Photo"
                           >
                             <Upload size={20} />
@@ -250,14 +250,14 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                                <button 
                                  type="button"
                                  onClick={() => setShowUrlInput(!showUrlInput)}
-                                 className="flex-1 py-2 bg-white border border-earth-200 rounded-lg text-xs font-semibold text-earth-600 hover:bg-earth-50 transition-colors shadow-sm"
+                                 className="flex-1 py-2 bg-white/60 border border-white/50 rounded-lg text-xs font-semibold text-earth-600 hover:bg-white/80 transition-colors shadow-sm backdrop-blur-sm"
                                >
                                  Paste URL
                                </button>
                                <button 
                                  type="button"
                                  onClick={() => fileInputRef.current?.click()}
-                                 className="flex-1 py-2 bg-white border border-earth-200 rounded-lg text-xs font-semibold text-earth-600 hover:bg-earth-50 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                                 className="flex-1 py-2 bg-white/60 border border-white/50 rounded-lg text-xs font-semibold text-earth-600 hover:bg-white/80 transition-colors flex items-center justify-center gap-1.5 shadow-sm backdrop-blur-sm"
                                >
                                  <Upload size={12} />
                                  Upload
@@ -291,7 +291,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                         value={imageUrl}
                         onChange={(e) => setImageUrl(e.target.value)}
                         placeholder="https://..."
-                        className="w-full px-4 py-2 text-sm rounded-xl bg-earth-50 text-earth-800 placeholder-earth-400 border border-earth-200 focus:ring-2 focus:ring-leaf-400 outline-none mb-4"
+                        className="w-full px-4 py-2 text-sm rounded-xl bg-white/50 text-earth-800 placeholder-earth-400 border border-white/40 focus:ring-2 focus:ring-leaf-400/30 outline-none mb-4 backdrop-blur-sm"
                       />
                     </motion.div>
                   )}
@@ -306,13 +306,13 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                       value={species}
                       onChange={(e) => setSpecies(e.target.value)}
                       placeholder="e.g. Fiddle Leaf Fig"
-                      className="flex-1 px-4 py-3 rounded-xl bg-earth-50 text-earth-800 placeholder-earth-400 border border-earth-200 focus:ring-2 focus:ring-leaf-400 focus:border-leaf-400 outline-none transition-all"
+                      className="flex-1 px-4 py-3 rounded-xl bg-white/50 text-earth-800 placeholder-earth-400 border border-white/40 focus:ring-2 focus:ring-leaf-400/30 focus:bg-white/80 focus:border-leaf-300/50 outline-none transition-all backdrop-blur-sm"
                     />
                     <button
                       type="button"
                       onClick={handleIdentify}
                       disabled={!species || isAnalyzing}
-                      className="px-4 py-2 rounded-xl bg-violet-50 text-violet-600 border border-violet-100 hover:bg-violet-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[3.5rem] shadow-sm"
+                      className="px-4 py-2 rounded-xl bg-violet-50/60 text-violet-600 border border-violet-100 hover:bg-violet-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center min-w-[3.5rem] shadow-sm backdrop-blur-sm"
                       title="Auto-fill details & image"
                     >
                       {isAnalyzing ? <Loader2 size={20} className="animate-spin" /> : <Sparkles size={20} />}
@@ -328,7 +328,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. Figgy"
-                    className="w-full px-4 py-3 rounded-xl bg-earth-50 text-earth-800 placeholder-earth-400 border border-earth-200 focus:ring-2 focus:ring-leaf-400 focus:border-leaf-400 outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-xl bg-white/50 text-earth-800 placeholder-earth-400 border border-white/40 focus:ring-2 focus:ring-leaf-400/30 focus:bg-white/80 focus:border-leaf-300/50 outline-none transition-all backdrop-blur-sm"
                   />
                 </motion.div>
 
@@ -343,7 +343,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                         required
                         value={frequency}
                         onChange={(e) => setFrequency(parseInt(e.target.value))}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-earth-50 text-earth-800 placeholder-earth-400 border border-earth-200 focus:ring-2 focus:ring-leaf-400 focus:border-leaf-400 outline-none transition-all no-spinner"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-white/50 text-earth-800 placeholder-earth-400 border border-white/40 focus:ring-2 focus:ring-leaf-400/30 focus:bg-white/80 focus:border-leaf-300/50 outline-none transition-all no-spinner backdrop-blur-sm"
                       />
                     </div>
                   </div>
@@ -354,7 +354,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                       value={lightNeeds}
                       onChange={(e) => setLightNeeds(e.target.value)}
                       placeholder="e.g. Bright indirect"
-                      className="w-full px-4 py-3 rounded-xl bg-earth-50 text-earth-800 placeholder-earth-400 border border-earth-200 focus:ring-2 focus:ring-leaf-400 focus:border-leaf-400 outline-none transition-all"
+                      className="w-full px-4 py-3 rounded-xl bg-white/50 text-earth-800 placeholder-earth-400 border border-white/40 focus:ring-2 focus:ring-leaf-400/30 focus:bg-white/80 focus:border-leaf-300/50 outline-none transition-all backdrop-blur-sm"
                     />
                   </div>
                 </motion.div>
@@ -366,7 +366,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Don't overwater..."
-                    className="w-full px-4 py-3 rounded-xl bg-earth-50 text-earth-800 placeholder-earth-400 border border-earth-200 focus:ring-2 focus:ring-leaf-400 focus:border-leaf-400 outline-none transition-all resize-none"
+                    className="w-full px-4 py-3 rounded-xl bg-white/50 text-earth-800 placeholder-earth-400 border border-white/40 focus:ring-2 focus:ring-leaf-400/30 focus:bg-white/80 focus:border-leaf-300/50 outline-none transition-all resize-none backdrop-blur-sm"
                   />
                 </motion.div>
 
@@ -375,7 +375,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="w-full bg-leaf-500 hover:bg-leaf-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-leaf-200 transition-all mt-4"
+                  className="w-full bg-leaf-500 hover:bg-leaf-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-leaf-500/20 transition-all mt-4 border border-white/20 backdrop-blur-md"
                 >
                   Add Plant to Garden
                 </motion.button>
