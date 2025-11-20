@@ -4,6 +4,7 @@ import AddPlantModal from './components/AddPlantModal';
 import PlantCard from './components/PlantCard';
 import LoginPage from './components/LoginPage';
 import AmbientBackground from './components/AmbientBackground';
+import InteractiveWave from './components/InteractiveWave';
 import Footer from './components/Footer';
 import { Plant } from './types';
 import { getPlants, addPlant, updatePlant, deletePlant } from './services/plantService';
@@ -167,11 +168,11 @@ const App: React.FC = () => {
     );
   }
 
-  // If Supabase is configured but no user, show Login Page
+  // If Supabase is configured but no user, show Login Page with Interactive Wave
   if (isSupabaseConfigured && !user) {
     return (
       <>
-        <AmbientBackground />
+        <InteractiveWave />
         <div className="fixed inset-0 bg-noise pointer-events-none z-[-10] opacity-30 mix-blend-overlay"></div>
         <LoginPage onLoginSuccess={() => { /* handled by listener */ }} />
       </>
@@ -180,6 +181,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-transparent text-earth-900 font-sans selection:bg-leaf-200 relative isolate flex flex-col">
+      {/* Dashboard uses the standard Ambient Background */}
       <AmbientBackground />
       {/* Noise Texture Overlay */}
       <div className="fixed inset-0 bg-noise pointer-events-none z-[-10] opacity-30 mix-blend-overlay"></div>
