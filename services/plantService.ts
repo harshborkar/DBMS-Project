@@ -4,12 +4,19 @@ import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEY = 'leaflink_plants';
 
-export const getPlants = async (): Promise<Plant[]> => {
+export const getPlants = async (userId?: string): Promise<Plant[]> => {
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
+    let query = supabase
       .from('plants')
       .select('*')
       .order('created_at', { ascending: false });
+    
+    // Filter by user if userId is provided
+    if (userId) {
+      query = query.eq('userId', userId);
+    }
+    
+    const { data, error } = await query;
     
     if (error) {
       console.error('Supabase error:', error);
@@ -19,7 +26,12 @@ export const getPlants = async (): Promise<Plant[]> => {
   } else {
     // Local Storage Fallback
     const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    const parsed = stored ? JSON.parse(stored) : [];
+    // Filter locally if needed
+    if (userId) {
+      return parsed.filter((p: Plant) => p.userId === userId);
+    }
+    return parsed;
   }
 };
 
@@ -27,7 +39,6 @@ export const addPlant = async (plant: Omit<Plant, 'id'>): Promise<Plant> => {
   const newPlant = { ...plant, id: uuidv4() };
 
   if (isSupabaseConfigured && supabase) {
-    // Ensure you have a 'plants' table in Supabase matching the Plant interface
     const { data, error } = await supabase
       .from('plants')
       .insert([newPlant])

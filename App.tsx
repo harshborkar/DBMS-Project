@@ -2,9 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import AddPlantModal from './components/AddPlantModal';
 import PlantCard from './components/PlantCard';
+import LoginPage from './components/LoginPage';
 import { Plant } from './types';
 import { getPlants, addPlant, updatePlant, deletePlant } from './services/plantService';
-import { isSupabaseConfigured } from './services/supabaseClient';
+import { isSupabaseConfigured, supabase, signOut } from './services/supabaseClient';
 import { AlertTriangle, Leaf, CheckCircle2, Droplets, Sprout, Heart } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { addDays, isBefore, isToday } from 'date-fns';
@@ -12,20 +13,47 @@ import { addDays, isBefore, isToday } from 'date-fns';
 type FilterType = 'all' | 'thirsty' | 'healthy';
 
 const App: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+  
   const [plants, setPlants] = useState<Plant[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [userEmail, setUserEmail] = useState<string>(() => localStorage.getItem('leaflink_email') || '');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
+  // Check Authentication Status
   useEffect(() => {
-    loadPlants();
+    if (!isSupabaseConfigured || !supabase) {
+      setAuthChecked(true);
+      return;
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthChecked(true);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  // Load plants when user changes
   useEffect(() => {
-    localStorage.setItem('leaflink_email', userEmail);
-  }, [userEmail]);
+    if (authChecked) {
+      if (user) {
+        loadPlants(user.email);
+      } else if (!isSupabaseConfigured) {
+        // Demo mode logic
+        loadPlants(); 
+      } else {
+        setPlants([]);
+      }
+    }
+  }, [user, authChecked]);
 
   useEffect(() => {
     if (notification) {
@@ -34,10 +62,10 @@ const App: React.FC = () => {
     }
   }, [notification]);
 
-  const loadPlants = async () => {
+  const loadPlants = async (userId?: string) => {
     setLoading(true);
     try {
-      const data = await getPlants();
+      const data = await getPlants(userId);
       setPlants(data);
     } catch (error) {
       console.error("Failed to load plants", error);
@@ -48,14 +76,11 @@ const App: React.FC = () => {
 
   const handleAddPlant = async (plantData: Omit<Plant, 'id'>) => {
     try {
-      const newPlant = await addPlant({ ...plantData, userId: userEmail });
+      // Use the authenticated user's email (or ID) as the userId
+      const ownerId = user?.email || 'demo-user';
+      const newPlant = await addPlant({ ...plantData, userId: ownerId });
       setPlants(prev => [newPlant, ...prev]);
-      
-      if (userEmail) {
-        setNotification(`Schedule created! Reminder emails will be sent to ${userEmail}`);
-      } else {
-        setNotification(`Plant added! Set your email in the header to receive reminders.`);
-      }
+      setNotification(`Schedule created! Reminder emails will be sent to ${ownerId}`);
     } catch (error) {
       console.error("Failed to add plant", error);
     }
@@ -79,6 +104,11 @@ const App: React.FC = () => {
     } catch (error) {
       console.error("Failed to delete plant", error);
     }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setPlants([]);
   };
 
   const filteredPlants = useMemo(() => {
@@ -108,12 +138,26 @@ const App: React.FC = () => {
     return { total, thirsty };
   }, [plants]);
 
+  // Loading State for Auth Check
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-[#fafaf9] flex items-center justify-center">
+        <Leaf className="animate-bounce text-leaf-400" size={32} />
+      </div>
+    );
+  }
+
+  // If Supabase is configured but no user, show Login Page
+  if (isSupabaseConfigured && !user) {
+    return <LoginPage onLoginSuccess={() => { /* handled by listener */ }} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#fafaf9] text-earth-900 font-sans selection:bg-leaf-200">
       <Header 
         onAddClick={() => setIsModalOpen(true)} 
-        userEmail={userEmail}
-        setUserEmail={setUserEmail}
+        userEmail={user?.email || ''}
+        onSignOut={handleSignOut}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -129,13 +173,14 @@ const App: React.FC = () => {
               <h4 className="font-medium">Demo Mode Active</h4>
               <p className="text-sm opacity-90 mt-1">
                 Supabase credentials are missing. Your data is saved locally. 
-                Configure Supabase to enable email reminders.
+                Configure Supabase to enable email reminders and authentication.
               </p>
             </div>
           </motion.div>
         )}
 
         {/* Garden Stats & Filters */}
+        <AnimatePresence mode="wait">
         {plants.length > 0 && (
           <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <motion.div 
@@ -194,6 +239,7 @@ const App: React.FC = () => {
             </motion.div>
           </div>
         )}
+        </AnimatePresence>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64 text-earth-400">
@@ -217,9 +263,9 @@ const App: React.FC = () => {
                </motion.div>
                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
             </div>
-            <h2 className="text-3xl font-bold text-earth-800 mb-3 tracking-tight">Your garden awaits</h2>
+            <h2 className="text-3xl font-bold text-earth-800 mb-3 tracking-tight">Your garden is empty</h2>
             <p className="text-earth-500 max-w-md mb-10 text-lg leading-relaxed">
-              Start your collection by adding your first plant. We'll use AI to figure out the perfect care schedule.
+              {user ? "Start your collection by adding your first plant." : "Your data is stored securely in the cloud."}
             </p>
             <motion.button
               whileHover={{ scale: 1.05 }}
