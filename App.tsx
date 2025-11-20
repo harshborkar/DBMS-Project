@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import AddPlantModal from './components/AddPlantModal';
 import PlantCard from './components/PlantCard';
@@ -9,7 +9,7 @@ import Footer from './components/Footer';
 import { Plant } from './types';
 import { getPlants, addPlant, updatePlant, deletePlant } from './services/plantService';
 import { isSupabaseConfigured, supabase, signOut } from './services/supabaseClient';
-import { AlertTriangle, Leaf, CheckCircle2, Droplets, Sprout, Heart, AlertCircle } from 'lucide-react';
+import { AlertTriangle, Leaf, CheckCircle2, Droplets, Sprout, Heart, AlertCircle, BarChart3 } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { addDays, isBefore, isToday } from 'date-fns';
 
@@ -24,6 +24,8 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Check Authentication Status
   useEffect(() => {
@@ -159,6 +161,15 @@ const App: React.FC = () => {
     return { total, thirsty };
   }, [plants]);
 
+  // Global Mouse Tracking for Spotlight
+  const handleGlobalMouseMove = (e: React.MouseEvent) => {
+    if (containerRef.current) {
+      const { clientX, clientY } = e;
+      containerRef.current.style.setProperty('--spot-x', `${clientX}px`);
+      containerRef.current.style.setProperty('--spot-y', `${clientY}px`);
+    }
+  };
+
   // Loading State for Auth Check
   if (!authChecked) {
     return (
@@ -180,9 +191,20 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-transparent text-earth-900 font-sans selection:bg-leaf-200 relative isolate flex flex-col">
+    <div 
+      ref={containerRef}
+      onMouseMove={handleGlobalMouseMove}
+      className="min-h-screen bg-transparent text-earth-900 font-sans selection:bg-leaf-200 relative isolate flex flex-col overflow-x-hidden"
+    >
       {/* Dashboard uses the standard Ambient Background */}
       <AmbientBackground />
+      {/* Global Spotlight Overlay */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-[-5] mix-blend-soft-light opacity-50 transition-opacity duration-500"
+        style={{
+          background: `radial-gradient(1000px circle at var(--spot-x, 50%) var(--spot-y, 50%), rgba(255,255,255,0.8), transparent 60%)`
+        }}
+      />
       {/* Noise Texture Overlay */}
       <div className="fixed inset-0 bg-noise pointer-events-none z-[-10] opacity-30 mix-blend-overlay"></div>
 
@@ -192,7 +214,7 @@ const App: React.FC = () => {
         onSignOut={handleSignOut}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow w-full">
         
         {!isSupabaseConfigured && (
           <motion.div 
@@ -214,54 +236,57 @@ const App: React.FC = () => {
         {/* Garden Stats & Filters */}
         <AnimatePresence mode="wait">
         {plants.length > 0 && (
-          <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="mb-8 sm:mb-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            {/* Stats Grid - Responsive */}
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="flex gap-6"
+              className="grid grid-cols-2 sm:flex sm:gap-6 gap-3 w-full lg:w-auto"
             >
-              <div className="bg-white/40 backdrop-blur-lg p-4 rounded-2xl border border-white/40 shadow-lg shadow-leaf-500/5 flex items-center gap-4 min-w-[140px]">
-                <div className="p-3 bg-leaf-100/80 rounded-full text-leaf-600 backdrop-blur-sm">
-                  <Sprout size={20} />
+              <div className="bg-white/40 backdrop-blur-lg p-4 rounded-2xl border border-white/40 shadow-lg shadow-leaf-500/5 flex items-center gap-3 sm:gap-4 sm:min-w-[160px]">
+                <div className="p-2.5 sm:p-3 bg-leaf-100/80 rounded-full text-leaf-600 backdrop-blur-sm shadow-inner">
+                  <Sprout size={18} className="sm:w-5 sm:h-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-earth-800">{stats.total}</div>
-                  <div className="text-xs text-earth-500 font-medium uppercase tracking-wider">Total Plants</div>
+                  <div className="text-xl sm:text-2xl font-bold text-earth-800 leading-none">{stats.total}</div>
+                  <div className="text-[10px] sm:text-xs text-earth-500 font-medium uppercase tracking-wider mt-1">Total Plants</div>
                 </div>
               </div>
               
-              <div className="bg-white/40 backdrop-blur-lg p-4 rounded-2xl border border-white/40 shadow-lg shadow-leaf-500/5 flex items-center gap-4 min-w-[140px]">
-                <div className={`p-3 rounded-full backdrop-blur-sm ${stats.thirsty > 0 ? 'bg-rose-100/80 text-rose-600' : 'bg-leaf-100/80 text-leaf-600'}`}>
-                  <Droplets size={20} />
+              <div className="bg-white/40 backdrop-blur-lg p-4 rounded-2xl border border-white/40 shadow-lg shadow-leaf-500/5 flex items-center gap-3 sm:gap-4 sm:min-w-[160px]">
+                <div className={`p-2.5 sm:p-3 rounded-full backdrop-blur-sm shadow-inner ${stats.thirsty > 0 ? 'bg-rose-100/80 text-rose-600' : 'bg-leaf-100/80 text-leaf-600'}`}>
+                  <Droplets size={18} className="sm:w-5 sm:h-5" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-earth-800">{stats.thirsty}</div>
-                  <div className="text-xs text-earth-500 font-medium uppercase tracking-wider">Needs Water</div>
+                  <div className="text-xl sm:text-2xl font-bold text-earth-800 leading-none">{stats.thirsty}</div>
+                  <div className="text-[10px] sm:text-xs text-earth-500 font-medium uppercase tracking-wider mt-1">Needs Water</div>
                 </div>
               </div>
             </motion.div>
 
+            {/* Filters - Scrollable on Mobile */}
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white/30 backdrop-blur-md p-1.5 rounded-xl border border-white/40 flex gap-1 self-start md:self-auto shadow-sm"
+              className="bg-white/30 backdrop-blur-md p-1.5 rounded-2xl border border-white/40 flex gap-1 w-full lg:w-auto overflow-x-auto no-scrollbar shadow-sm"
             >
               {(['all', 'thirsty', 'healthy'] as FilterType[]).map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setActiveFilter(filter)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 capitalize relative ${
+                  className={`flex-1 lg:flex-none px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 capitalize relative whitespace-nowrap ${
                     activeFilter === filter ? 'text-leaf-700' : 'text-earth-500 hover:text-earth-700 hover:bg-white/30'
                   }`}
                 >
                   {activeFilter === filter && (
                     <motion.div
                       layoutId="activeFilter"
-                      className="absolute inset-0 bg-white/80 rounded-lg shadow-sm border border-white/50"
+                      className="absolute inset-0 bg-white/80 rounded-xl shadow-sm border border-white/50"
                       transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                     />
                   )}
-                  <span className="relative z-10 flex items-center gap-2">
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    {filter === 'all' && <BarChart3 size={14} />}
                     {filter === 'thirsty' && <Droplets size={14}/>}
                     {filter === 'healthy' && <Heart size={14}/>}
                     {filter}
@@ -312,7 +337,7 @@ const App: React.FC = () => {
           <LayoutGroup>
             <motion.div 
               layout
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 pb-20"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 pb-20"
             >
               <AnimatePresence mode="popLayout">
                 {filteredPlants.map(plant => (
@@ -348,17 +373,17 @@ const App: React.FC = () => {
             initial={{ opacity: 0, y: 50, x: "-50%" }}
             animate={{ opacity: 1, y: 0, x: "-50%" }}
             exit={{ opacity: 0, y: 20, x: "-50%" }}
-            className="fixed bottom-8 left-1/2 z-50"
+            className="fixed bottom-8 left-1/2 z-50 w-[90%] max-w-md"
           >
-            <div className={`px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-3 backdrop-blur-xl border border-white/20 ${
+            <div className={`px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 backdrop-blur-xl border border-white/20 ${
               notification.type === 'error' ? 'bg-rose-900/90 text-white' : 'bg-earth-900/90 text-white'
             }`}>
               {notification.type === 'error' ? (
-                <AlertCircle size={20} className="text-rose-400" />
+                <AlertCircle size={24} className="text-rose-400 shrink-0" />
               ) : (
-                <CheckCircle2 size={20} className="text-leaf-400" />
+                <CheckCircle2 size={24} className="text-leaf-400 shrink-0" />
               )}
-              <span className="text-sm font-medium">{notification.message}</span>
+              <span className="text-sm font-medium leading-snug">{notification.message}</span>
             </div>
           </motion.div>
         )}

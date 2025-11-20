@@ -138,7 +138,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
   };
 
   const modalVariants: Variants = {
-    hidden: { opacity: 0, scale: 0.9, y: 20 },
+    hidden: { opacity: 0, scale: 0.95, y: 20 },
     visible: { 
       opacity: 1, 
       scale: 1, 
@@ -148,7 +148,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
         duration: 0.5, 
         bounce: 0.3,
         delayChildren: 0.1,
-        staggerChildren: 0.08
+        staggerChildren: 0.05
       }
     },
     exit: { 
@@ -167,7 +167,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center sm:p-4">
           {/* Backdrop */}
           <motion.div 
             variants={backdropVariants}
@@ -175,7 +175,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
             animate="visible"
             exit="exit"
             onClick={onClose}
-            className="absolute inset-0 bg-earth-900/20 backdrop-blur-sm"
+            className="absolute inset-0 bg-earth-900/30 backdrop-blur-sm"
           />
           
           {/* Modal Content */}
@@ -184,7 +184,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="bg-white/80 backdrop-blur-2xl border border-white/50 w-full max-w-md rounded-[2.5rem] shadow-2xl shadow-leaf-900/10 overflow-hidden relative z-10 flex flex-col max-h-[90vh]"
+            className="bg-white/80 backdrop-blur-2xl border-0 sm:border border-white/50 w-full h-full sm:h-auto sm:max-h-[90vh] sm:max-w-md rounded-none sm:rounded-[2.5rem] shadow-2xl shadow-leaf-900/10 overflow-hidden relative z-10 flex flex-col"
           >
             <div className="px-6 py-4 border-b border-white/30 flex justify-between items-center bg-white/30 shrink-0 backdrop-blur-sm">
               <motion.h2 
@@ -197,12 +197,12 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                 Add New Plant
               </motion.h2>
               <button onClick={onClose} className="p-2 hover:bg-white/50 rounded-full text-earth-400 hover:text-earth-600 transition-colors">
-                <X size={20} />
+                <X size={24} />
               </button>
             </div>
 
-            <div className="overflow-y-auto custom-scrollbar">
-              <form onSubmit={handleSubmit} className="p-6 space-y-5">
+            <div className="overflow-y-auto custom-scrollbar flex-1">
+              <form onSubmit={handleSubmit} className="p-6 space-y-5 pb-24 sm:pb-6">
                 
                 {/* Image Preview Section */}
                 <motion.div variants={itemVariants} className="flex justify-center mb-2">
@@ -375,7 +375,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="w-full bg-leaf-500 hover:bg-leaf-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-leaf-500/20 transition-all mt-4 border border-white/20 backdrop-blur-md"
+                  className="w-full bg-leaf-500 hover:bg-leaf-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-leaf-500/20 transition-all mt-4 border border-white/20 backdrop-blur-md mb-4 sm:mb-0"
                 >
                   Add Plant to Garden
                 </motion.button>
