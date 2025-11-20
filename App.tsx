@@ -130,8 +130,16 @@ const App: React.FC = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    // Optimistically clear user state immediately to ensure UI updates
+    setUser(null);
     setPlants([]);
+    
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Error signing out:", error);
+      // User state is already cleared, so user is effectively logged out on client
+    }
   };
 
   const filteredPlants = useMemo(() => {
