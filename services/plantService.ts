@@ -19,7 +19,7 @@ export const getPlants = async (userId?: string): Promise<Plant[]> => {
     const { data, error } = await query;
     
     if (error) {
-      console.error('Supabase error:', error);
+      console.error('Supabase fetch error:', error.message);
       return [];
     }
     return data as Plant[] || [];
@@ -46,8 +46,8 @@ export const addPlant = async (plant: Omit<Plant, 'id'>): Promise<Plant> => {
       .single();
 
     if (error) {
-      console.error('Supabase insert error:', error);
-      throw error;
+      console.error('Supabase insert error:', error.message, error.details);
+      throw new Error(error.message || 'Failed to add plant');
     }
     return data as Plant;
   } else {
@@ -66,7 +66,10 @@ export const updatePlant = async (plant: Plant): Promise<void> => {
       .update(plant)
       .eq('id', plant.id);
     
-    if (error) console.error('Supabase update error:', error);
+    if (error) {
+      console.error('Supabase update error:', error.message, error.details);
+      throw new Error(error.message || 'Failed to update plant');
+    }
   } else {
     const current = await getPlants();
     const updated = current.map(p => p.id === plant.id ? plant : p);
@@ -81,7 +84,10 @@ export const deletePlant = async (id: string): Promise<void> => {
       .delete()
       .eq('id', id);
       
-    if (error) console.error('Supabase delete error:', error);
+    if (error) {
+      console.error('Supabase delete error:', error.message, error.details);
+      throw new Error(error.message || 'Failed to delete plant');
+    }
   } else {
     const current = await getPlants();
     const updated = current.filter(p => p.id !== id);

@@ -3,10 +3,12 @@ import Header from './components/Header';
 import AddPlantModal from './components/AddPlantModal';
 import PlantCard from './components/PlantCard';
 import LoginPage from './components/LoginPage';
+import AmbientBackground from './components/AmbientBackground';
+import Footer from './components/Footer';
 import { Plant } from './types';
 import { getPlants, addPlant, updatePlant, deletePlant } from './services/plantService';
 import { isSupabaseConfigured, supabase, signOut } from './services/supabaseClient';
-import { AlertTriangle, Leaf, CheckCircle2, Droplets, Sprout, Heart } from 'lucide-react';
+import { AlertTriangle, Leaf, CheckCircle2, Droplets, Sprout, Heart, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { addDays, isBefore, isToday } from 'date-fns';
 
@@ -19,7 +21,7 @@ const App: React.FC = () => {
   const [plants, setPlants] = useState<Plant[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
 
   // Check Authentication Status
@@ -80,29 +82,43 @@ const App: React.FC = () => {
       const ownerId = user?.email || 'demo-user';
       const newPlant = await addPlant({ ...plantData, userId: ownerId });
       setPlants(prev => [newPlant, ...prev]);
-      setNotification(`Schedule created! Reminder emails will be sent to ${ownerId}`);
-    } catch (error) {
+      setNotification({ type: 'success', message: `Plant added to your garden!` });
+    } catch (error: any) {
       console.error("Failed to add plant", error);
+      setNotification({ type: 'error', message: `Failed to add plant: ${error.message}` });
     }
   };
 
   const handleWaterPlant = async (plant: Plant) => {
+    const previousDate = plant.lastWateredDate;
     const updatedPlant = { ...plant, lastWateredDate: new Date().toISOString() };
+    
+    // Optimistic Update
+    setPlants(prev => prev.map(p => p.id === plant.id ? updatedPlant : p));
+
     try {
       await updatePlant(updatedPlant);
-      setPlants(prev => prev.map(p => p.id === plant.id ? updatedPlant : p));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to water plant", error);
+      // Revert on failure
+      setPlants(prev => prev.map(p => p.id === plant.id ? { ...p, lastWateredDate: previousDate } : p));
+      setNotification({ type: 'error', message: `Failed to update: ${error.message}` });
     }
   };
 
   const handleDeletePlant = async (id: string) => {
     if (!window.confirm("Are you sure you want to remove this plant?")) return;
+    
+    // Optimistic Update (removed for safer error handling, or keep with revert logic)
+    // We will wait for server confirmation to avoid disappearing/reappearing if it fails
+    
     try {
       await deletePlant(id);
       setPlants(prev => prev.filter(p => p.id !== id));
-    } catch (error) {
+      setNotification({ type: 'success', message: "Plant removed from garden" });
+    } catch (error: any) {
       console.error("Failed to delete plant", error);
+      setNotification({ type: 'error', message: `Failed to delete: ${error.message}` });
     }
   };
 
@@ -149,18 +165,28 @@ const App: React.FC = () => {
 
   // If Supabase is configured but no user, show Login Page
   if (isSupabaseConfigured && !user) {
-    return <LoginPage onLoginSuccess={() => { /* handled by listener */ }} />;
+    return (
+      <>
+        <AmbientBackground />
+        <div className="fixed inset-0 bg-noise pointer-events-none z-[-10] opacity-30 mix-blend-overlay"></div>
+        <LoginPage onLoginSuccess={() => { /* handled by listener */ }} />
+      </>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-[#fafaf9] text-earth-900 font-sans selection:bg-leaf-200">
+    <div className="min-h-screen bg-transparent text-earth-900 font-sans selection:bg-leaf-200 relative isolate flex flex-col">
+      <AmbientBackground />
+      {/* Noise Texture Overlay */}
+      <div className="fixed inset-0 bg-noise pointer-events-none z-[-10] opacity-30 mix-blend-overlay"></div>
+
       <Header 
         onAddClick={() => setIsModalOpen(true)} 
         userEmail={user?.email || ''}
         onSignOut={handleSignOut}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
         
         {!isSupabaseConfigured && (
           <motion.div 
@@ -188,7 +214,7 @@ const App: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               className="flex gap-6"
             >
-              <div className="bg-white p-4 rounded-2xl border border-earth-100 shadow-sm flex items-center gap-4 min-w-[140px]">
+              <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-earth-100 shadow-sm flex items-center gap-4 min-w-[140px]">
                 <div className="p-3 bg-leaf-100 rounded-full text-leaf-600">
                   <Sprout size={20} />
                 </div>
@@ -198,7 +224,7 @@ const App: React.FC = () => {
                 </div>
               </div>
               
-              <div className="bg-white p-4 rounded-2xl border border-earth-100 shadow-sm flex items-center gap-4 min-w-[140px]">
+              <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-earth-100 shadow-sm flex items-center gap-4 min-w-[140px]">
                 <div className={`p-3 rounded-full ${stats.thirsty > 0 ? 'bg-rose-100 text-rose-600' : 'bg-leaf-100 text-leaf-600'}`}>
                   <Droplets size={20} />
                 </div>
@@ -212,7 +238,7 @@ const App: React.FC = () => {
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white/50 backdrop-blur-sm p-1.5 rounded-xl border border-earth-200 flex gap-1 self-start md:self-auto"
+              className="bg-white/60 backdrop-blur-sm p-1.5 rounded-xl border border-earth-200 flex gap-1 self-start md:self-auto"
             >
               {(['all', 'thirsty', 'healthy'] as FilterType[]).map((filter) => (
                 <button
@@ -308,6 +334,8 @@ const App: React.FC = () => {
         )}
       </main>
 
+      <Footer />
+
       {/* Toast Notification */}
       <AnimatePresence>
         {notification && (
@@ -317,9 +345,15 @@ const App: React.FC = () => {
             exit={{ opacity: 0, y: 20, x: "-50%" }}
             className="fixed bottom-8 left-1/2 z-50"
           >
-            <div className="bg-earth-900 text-white px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-3">
-              <CheckCircle2 size={20} className="text-leaf-400" />
-              <span className="text-sm font-medium">{notification}</span>
+            <div className={`px-6 py-3.5 rounded-full shadow-2xl flex items-center gap-3 ${
+              notification.type === 'error' ? 'bg-rose-900 text-white' : 'bg-earth-900 text-white'
+            }`}>
+              {notification.type === 'error' ? (
+                <AlertCircle size={20} className="text-rose-400" />
+              ) : (
+                <CheckCircle2 size={20} className="text-leaf-400" />
+              )}
+              <span className="text-sm font-medium">{notification.message}</span>
             </div>
           </motion.div>
         )}

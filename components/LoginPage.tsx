@@ -42,29 +42,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafaf9] flex items-center justify-center p-4 overflow-hidden relative">
-      {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.4 }}
-          transition={{ duration: 2 }}
-          className="absolute -top-24 -left-24 w-96 h-96 bg-leaf-200 rounded-full blur-3xl opacity-40"
-        />
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.3 }}
-          transition={{ duration: 2, delay: 0.5 }}
-          className="absolute top-1/2 -right-24 w-80 h-80 bg-amber-100 rounded-full blur-3xl opacity-30"
-        />
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 0.2 }}
-          transition={{ duration: 2, delay: 1 }}
-          className="absolute -bottom-24 left-1/3 w-96 h-96 bg-leaf-100 rounded-full blur-3xl opacity-30"
-        />
-      </div>
-
+    <div className="min-h-screen bg-transparent flex items-center justify-center p-4 overflow-hidden relative">
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -186,4 +164,3 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 };
 
 export default LoginPage;
-    

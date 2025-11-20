@@ -1,9 +1,9 @@
-import React, { useState, useCallback } from 'react';
-import { X, Sparkles, Loader2, Sprout, Droplets, Image as ImageIcon, RefreshCw, Link as LinkIcon } from 'lucide-react';
+import React, { useState, useCallback, useRef } from 'react';
+import { X, Sparkles, Loader2, Sprout, Droplets, Image as ImageIcon, RefreshCw, Link as LinkIcon, Upload } from 'lucide-react';
 import { getPlantCareAdvice } from '../services/geminiService';
 import { getRandomPlantImage } from '../constants';
 import { Plant } from '../types';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 interface AddPlantModalProps {
   isOpen: boolean;
@@ -19,6 +19,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
   const [lightNeeds, setLightNeeds] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [showUrlInput, setShowUrlInput] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
@@ -65,6 +66,48 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
     }
   }, [species, name, imageUrl, generateImage]);
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsGeneratingImage(true);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        // Resize image to max 800x800 to save space
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        setImageUrl(dataUrl);
+        setIsGeneratingImage(false);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onAdd({
@@ -87,34 +130,72 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
     onClose();
   };
 
+  // Animation Variants
+  const backdropVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+    exit: { opacity: 0 }
+  };
+
+  const modalVariants: Variants = {
+    hidden: { opacity: 0, scale: 0.9, y: 20 },
+    visible: { 
+      opacity: 1, 
+      scale: 1, 
+      y: 0,
+      transition: { 
+        type: "spring", 
+        duration: 0.5, 
+        bounce: 0.3,
+        delayChildren: 0.1,
+        staggerChildren: 0.08
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      scale: 0.95, 
+      y: 20,
+      transition: { duration: 0.2 } 
+    }
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            variants={backdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             onClick={onClose}
             className="absolute inset-0 bg-earth-900/30 backdrop-blur-sm"
           />
           
           {/* Modal Content */}
           <motion.div 
-            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden relative z-10 flex flex-col max-h-[90vh]"
           >
             <div className="px-6 py-4 border-b border-earth-100 flex justify-between items-center bg-leaf-50/50 shrink-0">
-              <h2 className="text-lg font-bold text-earth-800 flex items-center gap-2">
+              <motion.h2 
+                variants={itemVariants}
+                className="text-lg font-bold text-earth-800 flex items-center gap-2"
+              >
                 <div className="p-2 bg-leaf-100 rounded-full text-leaf-600">
                    <Sprout size={18} />
                 </div>
                 Add New Plant
-              </h2>
+              </motion.h2>
               <button onClick={onClose} className="p-2 hover:bg-earth-100 rounded-full text-earth-400 hover:text-earth-600 transition-colors">
                 <X size={20} />
               </button>
@@ -124,7 +205,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
               <form onSubmit={handleSubmit} className="p-6 space-y-5">
                 
                 {/* Image Preview Section */}
-                <div className="flex justify-center mb-2">
+                <motion.div variants={itemVariants} className="flex justify-center mb-2">
                   <div className="relative group w-full h-48 rounded-3xl overflow-hidden bg-earth-50 border-2 border-dashed border-earth-200 hover:border-leaf-300 transition-colors">
                     {imageUrl ? (
                       <>
@@ -134,7 +215,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                             type="button"
                             onClick={() => generateImage(species)}
                             className="p-3 bg-white text-earth-800 rounded-full shadow-lg hover:scale-110 transition-transform"
-                            title="Regenerate Image"
+                            title="Regenerate AI Image"
                           >
                             <RefreshCw size={20} className={isGeneratingImage ? "animate-spin" : ""} />
                           </button>
@@ -146,29 +227,55 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                           >
                             <LinkIcon size={20} />
                           </button>
+                          <button 
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="p-3 bg-white text-earth-800 rounded-full shadow-lg hover:scale-110 transition-transform"
+                            title="Upload Photo"
+                          >
+                            <Upload size={20} />
+                          </button>
                         </div>
                       </>
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-earth-400 gap-2">
+                      <div className="w-full h-full flex flex-col items-center justify-center text-earth-400 p-4">
                         {isGeneratingImage ? (
                            <Loader2 size={32} className="animate-spin text-leaf-500" />
                         ) : (
                            <>
-                             <ImageIcon size={32} />
-                             <span className="text-xs font-medium">Image will auto-generate</span>
-                             <button 
-                               type="button" 
-                               onClick={() => setShowUrlInput(!showUrlInput)}
-                               className="text-xs text-leaf-600 hover:underline mt-1"
-                             >
-                               or paste URL
-                             </button>
+                             <ImageIcon size={32} className="mb-2 opacity-50" />
+                             <span className="text-xs font-medium text-center mb-3">Image will auto-generate based on species</span>
+                             
+                             <div className="flex gap-2 w-full px-2">
+                               <button 
+                                 type="button"
+                                 onClick={() => setShowUrlInput(!showUrlInput)}
+                                 className="flex-1 py-2 bg-white border border-earth-200 rounded-lg text-xs font-semibold text-earth-600 hover:bg-earth-50 transition-colors shadow-sm"
+                               >
+                                 Paste URL
+                               </button>
+                               <button 
+                                 type="button"
+                                 onClick={() => fileInputRef.current?.click()}
+                                 className="flex-1 py-2 bg-white border border-earth-200 rounded-lg text-xs font-semibold text-earth-600 hover:bg-earth-50 transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+                               >
+                                 <Upload size={12} />
+                                 Upload
+                               </button>
+                             </div>
                            </>
                         )}
                       </div>
                     )}
+                    <input 
+                      type="file" 
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept="image/*"
+                      className="hidden" 
+                    />
                   </div>
-                </div>
+                </motion.div>
 
                 {/* URL Input (Collapsible) */}
                 <AnimatePresence>
@@ -190,7 +297,7 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                   )}
                 </AnimatePresence>
 
-                <div className="space-y-2">
+                <motion.div variants={itemVariants} className="space-y-2">
                   <label className="text-sm font-semibold text-earth-700 ml-1">Species / Type</label>
                   <div className="flex gap-2">
                     <input
@@ -212,9 +319,9 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                     </button>
                   </div>
                   <p className="text-xs text-earth-400 ml-1">Enter species and click the sparkle to auto-fill info & image.</p>
-                </div>
+                </motion.div>
 
-                <div className="space-y-2">
+                <motion.div variants={itemVariants} className="space-y-2">
                   <label className="text-sm font-semibold text-earth-700 ml-1">Nickname</label>
                   <input
                     type="text"
@@ -223,9 +330,9 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                     placeholder="e.g. Figgy"
                     className="w-full px-4 py-3 rounded-xl bg-earth-50 text-earth-800 placeholder-earth-400 border border-earth-200 focus:ring-2 focus:ring-leaf-400 focus:border-leaf-400 outline-none transition-all"
                   />
-                </div>
+                </motion.div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-earth-700 ml-1">Water Every (Days)</label>
                     <div className="relative">
@@ -250,9 +357,9 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                       className="w-full px-4 py-3 rounded-xl bg-earth-50 text-earth-800 placeholder-earth-400 border border-earth-200 focus:ring-2 focus:ring-leaf-400 focus:border-leaf-400 outline-none transition-all"
                     />
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="space-y-2">
+                <motion.div variants={itemVariants} className="space-y-2">
                   <label className="text-sm font-semibold text-earth-700 ml-1">Care Tips / Notes</label>
                   <textarea
                     rows={3}
@@ -261,14 +368,17 @@ const AddPlantModal: React.FC<AddPlantModalProps> = ({ isOpen, onClose, onAdd })
                     placeholder="Don't overwater..."
                     className="w-full px-4 py-3 rounded-xl bg-earth-50 text-earth-800 placeholder-earth-400 border border-earth-200 focus:ring-2 focus:ring-leaf-400 focus:border-leaf-400 outline-none transition-all resize-none"
                   />
-                </div>
+                </motion.div>
 
-                <button
+                <motion.button
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="w-full bg-leaf-500 hover:bg-leaf-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-leaf-200 transition-all hover:scale-[1.02] active:scale-[0.98] mt-4"
+                  className="w-full bg-leaf-500 hover:bg-leaf-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-leaf-200 transition-all mt-4"
                 >
                   Add Plant to Garden
-                </button>
+                </motion.button>
               </form>
             </div>
           </motion.div>
