@@ -67,14 +67,14 @@ const PlantCard: React.FC<PlantCardProps> = ({ plant, onWater, onDelete }) => {
         
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
 
-        <motion.button 
-          initial={{ opacity: 0, x: 10 }}
-          animate={{ opacity: isHovered ? 1 : 0, x: isHovered ? 0 : 10 }}
+        {/* Delete Button - Always visible on mobile (opacity-100), hidden on desktop until hover (md:opacity-0) */}
+        <button 
           onClick={(e) => { e.stopPropagation(); onDelete(plant.id); }}
-          className="absolute top-4 right-4 z-20 p-2 bg-white/30 backdrop-blur-md text-white rounded-full hover:bg-rose-500 transition-colors"
+          className="absolute top-4 right-4 z-30 p-2.5 bg-white/20 backdrop-blur-md text-white rounded-full hover:bg-rose-500 transition-all duration-300 shadow-sm opacity-100 md:opacity-0 md:group-hover:opacity-100 md:translate-x-2 md:group-hover:translate-x-0"
+          aria-label="Delete plant"
         >
-          <Trash2 size={16} />
-        </motion.button>
+          <Trash2 size={18} />
+        </button>
 
         <div className={`absolute top-4 left-4 px-3 py-1.5 rounded-full text-xs font-bold border ${statusColor} shadow-sm backdrop-blur-md bg-opacity-90 z-10`}>
           <div className="flex items-center gap-1.5">

@@ -109,15 +109,19 @@ const App: React.FC = () => {
   const handleDeletePlant = async (id: string) => {
     if (!window.confirm("Are you sure you want to remove this plant?")) return;
     
-    // Optimistic Update (removed for safer error handling, or keep with revert logic)
-    // We will wait for server confirmation to avoid disappearing/reappearing if it fails
-    
+    // Capture previous state for potential rollback
+    const previousPlants = [...plants];
+
+    // Optimistic Update: Remove immediately from UI
+    setPlants(prev => prev.filter(p => p.id !== id));
+
     try {
       await deletePlant(id);
-      setPlants(prev => prev.filter(p => p.id !== id));
       setNotification({ type: 'success', message: "Plant removed from garden" });
     } catch (error: any) {
       console.error("Failed to delete plant", error);
+      // Revert UI
+      setPlants(previousPlants);
       setNotification({ type: 'error', message: `Failed to delete: ${error.message}` });
     }
   };
