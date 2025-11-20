@@ -57,6 +57,9 @@ const PlantCard: React.FC<PlantCardProps> = ({ plant, onWater, onDelete }) => {
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    // PERFORMANCE OPTIMIZATION: Disable expensive tilt/glow calculations on touch devices
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+
     const rect = e.currentTarget.getBoundingClientRect();
     
     // For internal spotlight

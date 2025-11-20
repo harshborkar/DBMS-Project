@@ -14,11 +14,6 @@ const InteractiveWave: React.FC = () => {
     let time = 0;
 
     // Configuration for wave layers
-    // Colors match the leaf palette: 
-    // leaf-100: #e1f6e8
-    // leaf-200: #c4ebd4
-    // leaf-300: #96d9b6
-    // leaf-400: #61bf93
     const waves = [
       {
         baseY: height * 0.6,
@@ -57,6 +52,9 @@ const InteractiveWave: React.FC = () => {
 
       time += 1;
 
+      // Performance optimization: Increase step size on smaller screens or lower power devices
+      const step = width < 768 ? 10 : 5; 
+
       waves.forEach((wave) => {
         ctx.beginPath();
         ctx.moveTo(0, height);
@@ -64,14 +62,13 @@ const InteractiveWave: React.FC = () => {
         // Start drawing from left
         ctx.lineTo(0, wave.baseY);
 
-        for (let x = 0; x <= width; x += 5) { // Step by 5 for performance
+        for (let x = 0; x <= width; x += step) { 
           // Mouse interaction: vertical position affects phase/height slightly
           const mouseFactorY = (mouse.y / height) * 2;
           
           // Calculate wave y position
-          // sin(x * frequency + time + offset)
           const sine1 = Math.sin(x * wave.length + time * wave.speed + wave.offset);
-          const sine2 = Math.sin(x * wave.length * 0.5 + time * wave.speed * 0.5); // Secondary frequency for irregularity
+          const sine2 = Math.sin(x * wave.length * 0.5 + time * wave.speed * 0.5); 
           
           const y = wave.baseY + 
                    (sine1 * wave.amplitude) + 
@@ -103,8 +100,11 @@ const InteractiveWave: React.FC = () => {
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
+      // Only track mouse on devices with fine pointers
+      if (window.matchMedia('(pointer: fine)').matches) {
+        mouse.x = e.clientX;
+        mouse.y = e.clientY;
+      }
     };
 
     window.addEventListener('resize', handleResize);

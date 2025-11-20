@@ -163,7 +163,8 @@ const App: React.FC = () => {
 
   // Global Mouse Tracking for Spotlight
   const handleGlobalMouseMove = (e: React.MouseEvent) => {
-    if (containerRef.current) {
+    // Optimize: Skip on touch devices
+    if (containerRef.current && window.matchMedia('(pointer: fine)').matches) {
       const { clientX, clientY } = e;
       containerRef.current.style.setProperty('--spot-x', `${clientX}px`);
       containerRef.current.style.setProperty('--spot-y', `${clientY}px`);
