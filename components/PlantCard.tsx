@@ -26,8 +26,8 @@ const PlantCard: React.FC<PlantCardProps> = ({ plant, onWater, onDelete }) => {
   const mouseX = useSpring(x, { stiffness: 300, damping: 30 });
   const mouseY = useSpring(y, { stiffness: 300, damping: 30 });
 
-  const rotateX = useTransform(mouseY, [-0.5, 0.5], [7, -7]);
-  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-7, 7]);
+  const rotateX = useTransform(mouseY, [-0.5, 0.5], [5, -5]); // Subtle tilt
+  const rotateY = useTransform(mouseX, [-0.5, 0.5], [-5, 5]);
 
   const nextWaterDate = addDays(new Date(plant.lastWateredDate), plant.waterFrequencyDays);
   const daysUntil = differenceInDays(nextWaterDate, new Date());
@@ -35,16 +35,16 @@ const PlantCard: React.FC<PlantCardProps> = ({ plant, onWater, onDelete }) => {
   const isOverdue = daysUntil < 0;
   const isDueToday = isToday(nextWaterDate);
   
-  let statusColor = "text-leaf-700 bg-leaf-50/60 border-leaf-200/50";
+  let statusColor = "text-leaf-800 bg-white/60 border-leaf-200/50";
   let statusIcon = <Droplets size={12} className="fill-current" />;
   let statusText = `In ${daysUntil} days`;
 
   if (isOverdue) {
-    statusColor = "text-rose-700 bg-rose-50/60 border-rose-200/50";
+    statusColor = "text-rose-800 bg-rose-50/80 border-rose-200/50";
     statusIcon = <Wind size={12} />;
     statusText = `${Math.abs(daysUntil)} days overdue`;
   } else if (isDueToday) {
-    statusColor = "text-amber-700 bg-amber-50/60 border-amber-200/50";
+    statusColor = "text-amber-800 bg-amber-50/80 border-amber-200/50";
     statusIcon = <Sun size={12} className="fill-current" />;
     statusText = "Water today";
   }
@@ -102,29 +102,29 @@ const PlantCard: React.FC<PlantCardProps> = ({ plant, onWater, onDelete }) => {
           rotateX: isHovered ? rotateX : 0,
           rotateY: isHovered ? rotateY : 0,
         }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        transition={{ type: "spring", stiffness: 400, damping: 30 }}
         onHoverStart={() => setIsHovered(true)}
         onHoverEnd={handleMouseLeave}
         onMouseMove={handleMouseMove}
-        className="group relative bg-white/40 backdrop-blur-2xl rounded-[2rem] border border-white/40 shadow-xl shadow-leaf-900/5 overflow-hidden flex flex-col h-full transform-gpu transition-all duration-300"
+        className="group relative bg-white/30 backdrop-blur-xl rounded-[2rem] border border-white/40 shadow-xl shadow-leaf-900/5 overflow-hidden flex flex-col h-full transform-gpu transition-all duration-300"
       >
-        {/* Interactive Glass Glow */}
+        {/* Interactive Glass Glow - Stronger Light Source */}
         <div 
-          className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0 mix-blend-overlay"
+          className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"
           style={{
-            background: `radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.4), transparent 40%)`
+            background: `radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), rgba(255, 255, 255, 0.35), transparent 60%)`
           }}
         />
         
         {/* Shine Border Overlay */}
-        <div className="absolute inset-0 rounded-[2rem] border border-white/20 pointer-events-none z-50" />
+        <div className="absolute inset-0 rounded-[2rem] border border-white/50 pointer-events-none z-50 mix-blend-overlay opacity-50" />
 
         {/* Image Section */}
-        <div className="relative h-56 overflow-hidden bg-earth-100 z-10 group-hover:shadow-inner transition-shadow duration-500">
+        <div className="relative h-56 overflow-hidden bg-earth-100/50 z-10 group-hover:shadow-lg transition-all duration-500">
           {/* Shimmer Loading State */}
           {!isImgLoaded && (
-            <div className="absolute inset-0 bg-earth-200 animate-pulse z-20 flex items-center justify-center">
-              <div className="w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+            <div className="absolute inset-0 bg-earth-200/50 animate-pulse z-20 flex items-center justify-center">
+              <div className="w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
             </div>
           )}
           
@@ -141,7 +141,7 @@ const PlantCard: React.FC<PlantCardProps> = ({ plant, onWater, onDelete }) => {
             transition={{ duration: 0.8, ease: [0.33, 1, 0.68, 1] }}
           />
           
-          <div className="absolute inset-0 bg-gradient-to-t from-earth-900/70 via-transparent to-transparent opacity-90" />
+          <div className="absolute inset-0 bg-gradient-to-t from-earth-900/60 via-transparent to-transparent opacity-90" />
 
           {/* Animated Delete Button */}
           <motion.button 
@@ -149,7 +149,7 @@ const PlantCard: React.FC<PlantCardProps> = ({ plant, onWater, onDelete }) => {
             onHoverStart={() => trashControls.start("hover")}
             onHoverEnd={() => trashControls.start("idle")}
             whileTap={{ scale: 0.9 }}
-            className="absolute top-4 right-4 z-30 w-10 h-10 flex items-center justify-center bg-black/20 backdrop-blur-md border border-white/20 text-white rounded-full hover:bg-rose-500 hover:border-rose-400 transition-colors duration-300 shadow-lg opacity-100 translate-x-0 md:opacity-0 md:translate-x-2 md:group-hover:opacity-100 md:group-hover:translate-x-0"
+            className="absolute top-4 right-4 z-30 w-10 h-10 flex items-center justify-center bg-black/20 backdrop-blur-md border border-white/30 text-white rounded-full hover:bg-rose-500 hover:border-rose-400 transition-colors duration-300 shadow-lg opacity-100 translate-x-0 md:opacity-0 md:translate-x-2 md:group-hover:opacity-100 md:group-hover:translate-x-0"
             aria-label="Delete plant"
           >
              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -197,24 +197,24 @@ const PlantCard: React.FC<PlantCardProps> = ({ plant, onWater, onDelete }) => {
         {/* Content Section */}
         <div className="p-5 flex-1 flex flex-col justify-between relative z-10">
           <div className="space-y-3 mb-6">
-             <div className="flex items-center gap-3 p-3 rounded-xl bg-white/30 border border-white/40 backdrop-blur-sm hover:bg-white/50 transition-colors shadow-sm">
-               <div className="w-8 h-8 rounded-full bg-amber-100/80 flex items-center justify-center text-amber-600 shrink-0 shadow-inner">
+             <div className="flex items-center gap-3 p-3 rounded-xl bg-white/40 border border-white/40 backdrop-blur-sm hover:bg-white/60 transition-colors shadow-sm">
+               <div className="w-8 h-8 rounded-full bg-amber-100/60 flex items-center justify-center text-amber-700 shrink-0 shadow-inner border border-white/20">
                  <Sun size={16} />
                </div>
-               <div className="text-xs text-earth-700">
+               <div className="text-xs text-earth-800">
                  <span className="block font-semibold text-earth-900 mb-0.5">Light</span>
                  {plant.lightNeeds || 'Unknown'}
                </div>
              </div>
 
              {plant.notes && (
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-white/30 border border-white/40 backdrop-blur-sm hover:bg-white/50 transition-colors shadow-sm">
-               <div className="w-8 h-8 rounded-full bg-blue-100/80 flex items-center justify-center text-blue-600 shrink-0 shadow-inner">
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-white/40 border border-white/40 backdrop-blur-sm hover:bg-white/60 transition-colors shadow-sm">
+               <div className="w-8 h-8 rounded-full bg-blue-100/60 flex items-center justify-center text-blue-700 shrink-0 shadow-inner border border-white/20">
                  <Calendar size={16} />
                </div>
-               <div className="text-xs text-earth-700">
+               <div className="text-xs text-earth-800">
                  <span className="block font-semibold text-earth-900 mb-0.5">Notes</span>
-                 <p className="line-clamp-2">{plant.notes}</p>
+                 <p className="line-clamp-2 leading-relaxed opacity-90">{plant.notes}</p>
                </div>
              </div>
              )}
