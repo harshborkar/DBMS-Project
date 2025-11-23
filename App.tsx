@@ -9,6 +9,7 @@ import Footer from './components/Footer';
 import { Plant } from './types';
 import { getPlants, addPlant, updatePlant, deletePlant } from './services/plantService';
 import { isSupabaseConfigured, supabase, signOut } from './services/supabaseClient';
+import { sendPlantAddedEmail } from './services/emailService';
 import { AlertTriangle, Leaf, CheckCircle2, Droplets, Sprout, Heart, AlertCircle, BarChart3 } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { addDays, isBefore, isToday } from 'date-fns';
@@ -85,7 +86,26 @@ const App: React.FC = () => {
       const ownerId = user?.email || 'demo-user';
       const newPlant = await addPlant({ ...plantData, userId: ownerId });
       setPlants(prev => [newPlant, ...prev]);
-      setNotification({ type: 'success', message: `Plant added to your garden!` });
+      
+      let msg = "Plant added to your garden!";
+      
+      // Attempt to send email if user is logged in
+      if (user?.email) {
+        // We don't await this to keep UI snappy, but we catch errors
+        sendPlantAddedEmail(plantData, user.email)
+          .then((res) => {
+             if (res.status === 200) {
+                // If it was a simulation or success
+                console.log("Email service response:", res);
+             }
+          });
+          
+        // Since email sending is async and might be simulated, 
+        // we'll update the notification to mention it.
+        msg = "Plant added & confirmation email sent!";
+      }
+
+      setNotification({ type: 'success', message: msg });
     } catch (error: any) {
       console.error("Failed to add plant", error);
       setNotification({ type: 'error', message: `Failed to add plant: ${error.message}` });

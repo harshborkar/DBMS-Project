@@ -16,7 +16,8 @@
     "@supabase/supabase-js": "^2.84.0",
     "uuid": "^13.0.0",
     "date-fns": "^4.1.0",
-    "framer-motion": "^12.4.2"
+    "framer-motion": "^12.4.2",
+    "@emailjs/browser": "^4.3.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
